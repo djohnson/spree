@@ -1,3 +1,20 @@
+# special mock calculator needed for tests
+class TestCouponCalc < Calculator
+  def self.test_amount
+    0.99
+  end
+  def calculate_discount(checkout)    
+    self.class.test_amount
+  end
+end
+
+# special mock calculator needed for tests
+class TestShippingCalc < ShippingCalculator  
+  def calculate_shipping(order)
+    5
+  end
+end
+
 Factory.define :order do |f| 
   f.charges { [Factory(:ship_charge), Factory(:tax_charge)] } 
 end
@@ -21,7 +38,8 @@ Factory.define :user do |f|
 end
 
 Factory.define :shipment do |f|
-  f.association :shipping_method
+  f.association :shipping_method 
+  f.association :order
 end
 
 Factory.define :shipping_method do |f|
@@ -130,5 +148,30 @@ end
 
 Factory.define :credit do |f|
   f.amount 2.00
-  f.description "20% Off"
+  f.description "20% Off"    
+  f.association :creditable, :factory => :discount    
+end
+                               
+Factory.define :coupon_calculator, :class => TestCouponCalc do |f| 
+  f.association :calculable, :factory => :coupon
+end
+
+Factory.define :coupon do |f|
+  f.code "FOO"
+  f.combine true 
+  f.calculator { |c| Factory(:coupon_calculator, :calculable_id => c.object_id, :calculable_type => "Coupon") }
+end
+
+Factory.define :discount do |f|
+  f.association :checkout
+  f.association :coupon  
+end                
+
+Factory.define :shipping_method do |f|
+  f.association :zone    
+  f.name { Factory.next(:name) }
+end
+
+Factory.define :calculator, :class => TestShippingCalc do |f|
+  f.association :calculable, :factory => :shipping_method
 end

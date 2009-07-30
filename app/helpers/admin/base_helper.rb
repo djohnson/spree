@@ -78,10 +78,14 @@ module Admin::BaseHelper
       options = options.merge(args.pop)
     end
     options[:route] ||=  "admin_#{args.first}"
-    
+
+    destination_url = send("#{options[:route]}_path")
+
+    return("") unless url_options_authenticate?(ActionController::Routing::Routes.recognize_path(destination_url))
+
     ## if more than one form, it'll capitalize all words
     label_with_first_letters_capitalized = t(options[:label]).gsub(/\b\w/){$&.upcase}
-    link = link_to(label_with_first_letters_capitalized, send("#{options[:route]}_path"))
+    link = link_to(label_with_first_letters_capitalized, destination_url)
     
     css_classes = []
 
@@ -162,5 +166,14 @@ module Admin::BaseHelper
     out << fields.hidden_field(:_delete) unless fields.object.new_record?
     out << (link_to icon("delete"), "#", :class => "remove")
     out
-  end    
+  end  
+  
+  def preference_fields(calculator, form)
+    field_html = ""
+    calculator.preferences.keys.each do |key|
+      field_html += (form.label("preferred_#{key}", "#{t(key)}: "))
+      field_html += (form.text_field("preferred_#{key}")) 
+    end
+    field_html
+  end  
 end

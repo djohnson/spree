@@ -18,9 +18,15 @@ ActionController::TestCase.class_eval do
       super action, @params.merge( params || {} ), *extras if @params
     end
   end
-end 
+end  
 
 def setup
   super
   @params = {}
+end
+
+class TestCouponCalc
+  def self.calculate_discount(checkout)    
+    0.99
+  end
 end
